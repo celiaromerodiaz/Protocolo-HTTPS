@@ -1,47 +1,29 @@
-# Configuración HTTPS en servidor Apache - SSL
-En caso de no disponer de un dominio para nuestro servidor, podemos optar por la opción de autofirmado para generar un certificado SSL propio sin una CA, ya que pueden ser de pago o algunos requerir una verificación (en caso de dominio).
-
-## Activando el módulo SSL
-Lo primero que debemos hacer en nuestro servidor Apache es activar el modulo SSL en caso de no tenerlo activo, hacemos uso del siguiente comando: `a2enmod ssl` y luego reiniciamos el servidor apache para hacer efectivo el cambio: `systemctl restart apache2`.
+Primero de todo debemos asegurarnos de tener activo el modulo SSL. En caso de no tenerlo activo debemos hacer uso del comando a2enmod ssl y lreiniciar el servidor Apache para que se ejecute correctamente.
 
 ![](img/1.png)
 
-## Configurando nuestro virtual host
-Debemos realizar un serie de configuraciones sobre nuestro virtual host para prepararlo, suponiendo que ya tenemos un directorio root creado y un archivo html de prueba, procedemos a hacer una copia de la configuración por defecto para nuestro VH y modificarlo a gusto.  
-Para ello nos ubicamos en el directorio `/etc/apacha2/sites-available/` y hacemos uso del comando `cp default-ssl.conf despliegueivhttps.conf`.
+Lo siguiente que haremos será hacer una copia de la configuración que tenemos por defecto para nuestro Virtual Host y modificarlo como nos apetezca. Para esto, iremos al directorio /etc/apacha2/sites-available/ y usamos el comando cp default-ssl.conf desplieguecrdhttps.conf.
 
 ![](img/2.png)
 
-Ahora editamos las siguiente líneas del fichero `despliegueivhttps.conf` creado en el paso anterior:  
-- `Servername`: con el nombre de dominio para este VH.
-- `DocumentRoot`: con la ubicación del directorio de nuesto VH.
-- Asegurarnos que `SSLEngine` este en `on`.
-- `SSLCertificateFile` y `SSLCertificateKeyFile`: cambiamos el nombre de los ficheros `.crt` y `.key` por el que vayas a utilizar al crear dichos ficheros en los siguientes pasos.
+Ahora para que todo funcione correctamente, iremos al fichero que hemos creado y editaremos distintas líneas como Servername, DocumentRoot, SSLEngine, SSLCertificateFile y SSLCertificateKeyFile, de tal forma que quede de la siguiente forma:
 
 ![](img/3.png)
 
-Solo nos queda activar nuestro VH mediante el comando `a2ensite despliegueivhttps.conf` puesto que todavía no tenemos los archivos `.crt` y `.key` no reiniciaremos el servidor apache para evitar errores, lo haremos con posterioridad.
+Por último, nos queda activar nuestro Virtual Host recién creado, lo cual lo haremos mediante el comando a2ensite desplieguecrdhttps.conf. Como aun no hemos creado los correspondientes archivos .crt y .key, no reiniciaremos el servidor Apache pues comenzará a dar errores a causa de esto.
 
 ![](img/4.png)
 
-## Creando los certificados
-Para nuestro fichero `.crt` y `.key` hacemos uso del comando: `openssl req -x509 -nodes -days 365 -newkey rsa:4096 -keyout /etc/ssl/private/ssl-despliegueivhttps.key -out /etc/ssl/certs/ssl-despliegueivhttps.crt` con los nombre de archivo que hayamos configurado en el paso anterior.
+Como hemos dicho anteriormente, necesitamos nuestros ficheros .crt y .key que crearemos a través del siguiente comando:
+
+![](img/5.png)
+
+Una vez hecho esto podemos reiniciar nuestro servidor Apache sin tener la preocupación de que se muestre un error, pudiendo acceder ahora a nuestro Virtual Host para ver el resultado.
 
 ![](img/6.png)
 
-Ahora solo nos toca reiniciar el servidor apache e intentar acceder a nuestro VH para ver los resultados.
+Para lo siguiente que hay que explicar imaginaremos el hipotetico caso de que tenemos otro Virtual Host con el protocolo http, y queremos que todo el tráfico que reciba este sea redirigido al Virtual Host que hemos creado anteriormente. Para hacer debemos añadir la siguiente línea al fichero .conf de este Virtual Host:
 
 ![](img/7.png)
 
-Y si examinamos el certificado de la página podemos ver que aparecen los datos que hemos proporcionado al crear el certificado.
-
-![](img/8.png)
-
-## Redirigiendo a https desde http
-Imaginemos que tenemos otro VH con el protocolo http, y queremos que todo el trafico sea redirijido a nuestro VH con https, para hacer esto solo nos bastaría con agregar la siguiente línea al fichero .conf de nuestro VH http: `redirect / https://www.despliegueivhttps.org` y reniciamos el servidor.
-
-![](img/9.png)
-
-Como se ve, se ha hecho la redirección con satisfacción.
-
-![](img/10.png)
+Una vez hecho esto, se reinicia nuestro servidor Apache y podemos revisar con normalidad que todo funciona correctamente y que la redirección se realiza.
